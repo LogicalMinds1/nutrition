@@ -1,5 +1,6 @@
 import requests
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -11,5 +12,10 @@ def trigger_n8n_webhook():
         "risk": "high",
         "age": 28
     }
-    response = requests.post(url, json=data)
-    return {"n8n_response": response.json()}
+
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        return {"n8n_response": response.json()}
+    except requests.exceptions.RequestException as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
